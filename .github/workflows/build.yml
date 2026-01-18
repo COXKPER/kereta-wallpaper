@@ -1,0 +1,43 @@
+name: build-gtk3-go
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install deps
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            libgtk-3-dev \
+            libglib2.0-dev \
+            libgdk-pixbuf-2.0-dev \
+            pkg-config
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Build
+        env:
+          CGO_ENABLED: "1"
+        run: |
+          go mod download
+          go build -v \
+            -ldflags="-s -w" \
+            -o kewd
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kewd-linux-x86_64
+          path: kewd
